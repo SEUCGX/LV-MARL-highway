@@ -61,8 +61,7 @@ if __name__ == '__main__':
                 actions.append(action)  # 不用列表生成式，方便调参
             next_observations, rewards, truncated, info = env.step(tuple(actions))
             dones = info["agents_dones"]
-            for observation, next_observation, reward, action, done in zip(observations, next_observations, rewards,
-                                                                           actions, dones):
+            for observation, next_observation, reward, action, done in zip(observations, next_observations, rewards, actions, dones):
                 agent.push_memory(observation, action, reward, next_observation, done)
 
             observations = copy.deepcopy(env.get_obs())  # 不能直接copy，因为会清理车
@@ -85,10 +84,6 @@ if __name__ == '__main__':
                 f"Episode {i_episode}, Test Speed: {speeds}, Test Reward: {total_rewards}, test safe rate: {safe_rate}")
             print(f"Episode {i_episode}, train Reward: {total_reward / 20}, train safe rate: {win_rate}")
             tr = sum(total_rewards) / len(total_rewards)
-            if tr > 15:
-                str_save = result_dir + f"model_{int(tr * 1000)}.pth"
-                torch.save(agent, str_save)
-                print(str_save)
             if tr > max_total_rewards:
                 env_eval.save()  # 相当于执行一些保存的操作
                 max_total_rewards = tr
@@ -102,26 +97,6 @@ if __name__ == '__main__':
         episode_data["Episode"].append(i_episode)
         episode_data["Win_rate"].append(win_rate)
         episode_data["Total_Reward"].append(total_reward)
-
-        if i_episode == 1000:
-            print(f"最终所提出算法平均奖励值：{max_total_rewards:.4f},安全率{max_rate:.3f}")
-            full_path = __file__
-            filename_with_extension = os.path.basename(full_path)
-            filename_without_extension = os.path.splitext(filename_with_extension)[0]
-
-            # 生成并保存 episode_data
-            episode_dir = f"0318/episode_results"
-            os.makedirs(episode_dir, exist_ok=True)  # 自动创建目录（如果不存在）
-            data_name = f"{episode_dir}/{filename_without_extension}_episode_data.mat"
-            savemat(data_name, episode_data)
-            print(f"OK! {data_name}")
-
-            # 生成并保存 evaluation_data
-            evaluation_dir = f"0318/evaluation_data"
-            os.makedirs(evaluation_dir, exist_ok=True)  # 自动创建目录（如果不存在）
-            data_name = f"{evaluation_dir}/{filename_without_extension}_evaluation_data.mat"
-            savemat(data_name, evaluation_data)
-            print(f"OK! {data_name}")
 
     print(f"最终所提出算法平均奖励值：{max_total_rewards:.4f},安全率{max_rate:.3f}")
     full_path = __file__
